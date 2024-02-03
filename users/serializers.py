@@ -5,6 +5,8 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.validators import UniqueValidator
 
+from users.models import Profile
+
 
 class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -49,3 +51,9 @@ class LoginSerializer(serializers.Serializer):
             token = Token.objects.get(user=user)
             return token
         raise serializers.ValidationError({'error': 'unable to login with provided credentials.'})
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['nickname', 'position', 'subjects', 'image']
