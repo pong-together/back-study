@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.authtoken.admin import User
@@ -40,3 +41,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         token = Token.objects.create(user=user)
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)  #역직렬화만 가능
+
+    def validate(self, data):
+        user = authenticate(**data) #사용자 인증하는 함수
+        if user:
+            token = Token.objects.get(user=user)
+            return token
+        raise serializers.ValidationError(
+            {"error": "Unable to log in with provided credentials."}
+        )
