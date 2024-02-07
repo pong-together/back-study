@@ -10,6 +10,10 @@ urlpatterns = [
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     # allauth
     path('allauth/', include('allauth.urls')),
+    # simple-jwt
+    path('login/', TokenObtainPairView.as_view()),
+    path('token/refresh/', TokenRefreshView.as_view()),
+    path('token/verify/', TokenVerifyView.as_view()),
 
-    path('index/', IndexView.as_view())
+    path('index/', IndexView.as_view()),
 ]
