@@ -18,6 +18,17 @@ class CustomUserManager(BaseUserManager):
         user.save()
         return user
 
+    def create_user_by_oauth(self, email, **extra_fields):
+        """
+        Create and save a User with the given email and password.
+        """
+        if not email:
+            raise ValueError('The Email must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.save()
+        return user
+
     def create_superuser(self, email, password, **extra_fields):
         """
         Create and save a SuperUser with the given email and password.

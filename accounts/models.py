@@ -17,5 +17,9 @@ class User(AbstractUser):
 
     date_of_birth = models.DateField(blank=True, null=True)
 
+    class DoesNotExist(Exception):
+        def __init__(self, message="does not exist user"):
+            super().__init__(message)
+
     def __str__(self):
         return self.email
