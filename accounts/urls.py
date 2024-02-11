@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
-from accounts.views import IndexView, GoogleLogin, GoogleCallback
+from accounts.views import IndexView, GoogleLogin, GoogleCallback, GoogleLoginFinish
 
 app_name = 'accounts'
 urlpatterns = [
@@ -18,6 +18,7 @@ urlpatterns = [
     path('index/', IndexView.as_view()),
 
     # google social login
-    path('google/login', GoogleLogin.as_view()),
+    path('google/login/', GoogleLogin.as_view()),
     path('google/callback/', GoogleCallback.as_view()),
+    path('google/login/finish/', GoogleLoginFinish.as_view()),
 ]
