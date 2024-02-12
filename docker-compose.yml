@@ -11,10 +11,10 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
-  web:
-    build: ./django
+  backend:
+    build: ./backend
     volumes:
-      - ./django/srcs/:/code
+      - ./backend/srcs/:/code
     ports:
       - "8000:8000"
     environment:
