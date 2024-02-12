@@ -1,0 +1,9 @@
+.DS_Store
+*.swp
+.env
+
+
+# django
+__pycache__
+.idea
+.venv
