@@ -1,4 +1,5 @@
 #!/bin/sh
+cd /code
 chmod +x manage.py
 python3 manage.py makemigrations
 python3 manage.py migrate
