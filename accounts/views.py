@@ -1,8 +1,13 @@
+import base64
+import io
 import os
+from io import BytesIO
+
+import pyotp
 import requests
 
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from requests import JSONDecodeError
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +16,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User
+
+import qrcode
 
 
 # Create your views here.
@@ -96,3 +103,51 @@ class GoogleCallback(APIView):
 class GoogleLoginFinish(APIView):
     def get(self, request):
         return Response(status=status.HTTP_200_OK)
+
+
+class CreateQRcodeAPIView(APIView):
+    def get(self, request):
+        try:
+            email = request.GET.get('email')
+            user = User.objects.get(email=email)
+            totp = pyotp.totp.TOTP(user.otp_secret_key)
+            qrcode_uri\
+                = totp.provisioning_uri(name=email.lower(), issuer_name='my_site')
+        except User.DoesNotExist:
+            data = {'message': 'Non-existent users'}
+            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
+
+        ## QR 코드 생성
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qrcode_uri)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        file_path = f"qrcode/{email[0:5]}.png"
+        img.save(file_path, format='PNG')
+
+        return Response({'qrcode_url': qrcode_uri}, status=status.HTTP_200_OK)
+
+
+class VerifyOTPAPIView(APIView):
+    def get(self, request):
+        try:
+            email = request.GET.get('email')
+            code = request.GET.get('code')
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            data = {'message': 'Non-existent users'}
+            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
+
+        totp = pyotp.totp.TOTP(user.otp_secret_key)
+        if not totp.verify(code):
+            data = {
+                'authentication': 'fail',
+                'message': 'Invalid otp code'
+            }
+            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'authentication': 'success'}, status=status.HTTP_200_OK)

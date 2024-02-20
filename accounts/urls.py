@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
-from accounts.views import IndexView, GoogleLogin, GoogleCallback, GoogleLoginFinish
+from accounts.views import IndexView, GoogleLogin, GoogleCallback, GoogleLoginFinish, CreateQRcodeAPIView, VerifyOTPAPIView
 
 app_name = 'accounts'
 urlpatterns = [
@@ -21,4 +21,9 @@ urlpatterns = [
     path('google/login/', GoogleLogin.as_view()),
     path('google/callback/', GoogleCallback.as_view()),
     path('google/login/finish/', GoogleLoginFinish.as_view()),
+
+    # 2FA - Google OTP
+    path('google/otp/', CreateQRcodeAPIView.as_view()),
+    path('google/otp/verify/', VerifyOTPAPIView.as_view())
+
 ]
