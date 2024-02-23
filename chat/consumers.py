@@ -1,3 +1,4 @@
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from chat.models import ChatRoom, Message
@@ -29,7 +30,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         except Exception as e:
             pass
 
-    async def receive_json(self, content):
+    async def receive_json(self, content, **kwargs):
         try:
             message = content['message']
             sender_email = content['sender_email']
@@ -56,7 +57,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         except ValueError as e:
             await self.send_json({'error': str(e)})
 
-
     async def chat_message(self, event):
         try:
             message = event['message']
@@ -67,19 +67,24 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         except Exception as e:
             await self.send_json({'error': '메시지 전송 실패'})
 
+    @staticmethod
     def get_group_name(room_id):
         return f"chat_room_{room_id}"
 
+    @database_sync_to_async
     def get_or_create_room(self, shop_user_email, visitor_user_email):
         try:
             room = ChatRoom.objects.get(shop_user__shop_user_email=shop_user_email, visitor_user__visitor_user_email=visitor_user_email)
             return room
         except ChatRoom.DoesNotExist:
             raise ValueError("채팅방이 존재하지 않습니다.")
+
+    @database_sync_to_async
     def save_message(self, room, sender_email, message_text):
         if not sender_email or not message_text:
             raise ValueError("발신자 이메일 및 메시지 텍스트가 필요합니다.")
         Message.objects.create(room=room, sender_email=sender_email, text=message_text)
 
+    @database_sync_to_async
     def check_room_exits(self, room_id):
         return ChatRoom.objects.filter(id=room_id).exits()
