@@ -10,7 +10,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             self.room_id = self.scope['url_route']['kwargs']['room_id']
 
-            if not await self.check_room_exits(self.room_id):
+            if not await self.check_room_exists(self.room_id):
                 raise ValueError('채팅방이 존재하지 않습니다.')
 
             group_name = self.get_group_name(self.room_id)
@@ -86,5 +86,5 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         Message.objects.create(room=room, sender_email=sender_email, text=message_text)
 
     @database_sync_to_async
-    def check_room_exits(self, room_id):
-        return ChatRoom.objects.filter(id=room_id).exits()
+    def check_room_exists(self, room_id):
+        return ChatRoom.objects.filter(id=room_id).exists()
