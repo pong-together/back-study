@@ -22,7 +22,6 @@ class ChatRoomListCreateAPIView(APIView):
             return Response({'error': f'{str(e)} is required'}, status=status.HTTP_400_BAD_REQUEST)
         except Http404 as e:
             return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
-        # return chat_rooms
         serializer = ChatRoomSerializer(chat_rooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
