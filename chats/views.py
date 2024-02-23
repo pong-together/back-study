@@ -26,18 +26,18 @@ class ChatRoomListCreateAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-
         shop_user_email = request.data.get('shop_user_email')
         visitor_user_email = request.data.get('visitor_user_email')
 
-        chatroom = ChatRoom.objects.filter(
-            shop_user__shop_user_email=shop_user_email,
-            visitor_user__visitor_user_email=visitor_user_email
-        )
-
-        if chatroom:
-            serializer = ChatRoomSerializer(chatroom, context={'request': self.request})
+        try:
+            chatroom = ChatRoom.objects.get(
+                shop_user__shop_user_email=shop_user_email,
+                visitor_user__visitor_user_email=visitor_user_email
+            )
+            serializer = ChatRoomSerializer(chatroom)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
+        except ChatRoom.DoesNotExist:
+            pass
 
         # 채팅방 생성
         serializer = ChatRoomSerializer(data=request.data)
