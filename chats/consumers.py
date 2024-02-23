@@ -44,10 +44,12 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             group_name = self.get_group_name(self.room_id)
 
             await self.save_message(room, sender_email, message)
+            from datetime import datetime
             data = {
                 'type': 'chat_message',
                 'message': message,
-                'sender_email': sender_email
+                'sender_email': sender_email,
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
             await self.channel_layer.group_send(group_name, data)
 
@@ -58,8 +60,14 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             message = event['message']
             sender_email = event['sender_email']
+            timestamp = event['timestamp']
 
-            await self.send_json({'message': message, 'sender_email': sender_email})
+            message = {
+                'message': message,
+                'sender_email': sender_email,
+                'timestamp': timestamp
+            }
+            await self.send_json(message)
 
         except KeyError as e:
             await self.send_json({'error': f'{str(e)} is required'})
