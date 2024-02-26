@@ -1,3 +1,7 @@
+import asyncio
+import json
+from datetime import datetime
+
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
@@ -19,6 +23,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
             await self.channel_layer.group_add(group_name, self.channel_name)
             await self.accept() # websocket 연결 수락
+            self.ping_task = asyncio.create_task(self.send_ping())
 
         except ValueError as e:
             await self.send_json({'error': str(e)})
@@ -29,8 +34,17 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             group_name = self.get_group_name(self.room_id)
             await self.channel_layer.group_discard(group_name, self.channel_name)
+            self.ping_task.cancel()
         except Exception as e:
             await self.send_json({'error': str(e)})
+
+    async def send_ping(self):
+        while True:
+            await asyncio.sleep(10)  # 10초마다 핑 메시지를 보냄
+            await self.send(text_data=json.dumps({
+                'type': 'ping',
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }))
 
     async def receive_json(self, content, **kwargs):
         try:
@@ -44,7 +58,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             group_name = self.get_group_name(self.room_id)
 
             await self.save_message(room, sender_email, message)
-            from datetime import datetime
+            # from datetime import datetime
             data = {
                 'type': 'chat_message',
                 'message': message,
